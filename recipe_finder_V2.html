@@ -1,0 +1,839 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Fresh Ideas for You | Chef AI | Woolworths</title>
+  <link href="https://fonts.googleapis.com/css2?family=Helvetica+Neue:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html, body {
+      height: 100%;
+      font-family: 'Helvetica Neue', Arial, sans-serif;
+      background-color: #ffffff;
+      color: #333333;
+    }
+
+    body {
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Header matching Woolworths style */
+    .header {
+      background-color: #ffffff;
+      border-bottom: 1px solid #e6e6e6;
+      padding: 0;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+
+    .header-top {
+      background-color: #1c7430;
+      padding: 8px 0;
+      text-align: center;
+    }
+
+    .header-top-text {
+      color: white;
+      font-size: 14px;
+      font-weight: 400;
+    }
+
+    .header-main {
+      padding: 16px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      max-width: 1200px;
+      margin: 0 auto;
+      width: 100%;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .logo-text {
+      font-size: 28px;
+      font-weight: 700;
+      color: #1c7430;
+    }
+
+    .logo-subtitle {
+      font-size: 16px;
+      color: #7d7d7d;
+      font-weight: 400;
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 32px;
+      align-items: center;
+    }
+
+    .nav-link {
+      color: #333333;
+      text-decoration: none;
+      font-size: 16px;
+      font-weight: 500;
+      transition: color 0.2s ease;
+    }
+
+    .nav-link:hover {
+      color: #1c7430;
+    }
+
+    .nav-link.active {
+      color: #1c7430;
+      border-bottom: 2px solid #1c7430;
+      padding-bottom: 2px;
+    }
+
+    /* Hero section */
+    .hero {
+      background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+      padding: 48px 24px;
+      text-align: center;
+      border-bottom: 1px solid #e6e6e6;
+    }
+
+    .hero-content {
+      max-width: 800px;
+      margin: 0 auto;
+    }
+
+    .hero-title {
+      font-size: 42px;
+      font-weight: 700;
+      color: #1c7430;
+      margin-bottom: 16px;
+      line-height: 1.2;
+    }
+
+    .hero-subtitle {
+      font-size: 20px;
+      color: #666666;
+      margin-bottom: 32px;
+      line-height: 1.4;
+    }
+
+    /* Chat container */
+    .main-content {
+      flex-grow: 1;
+      max-width: 1200px;
+      margin: 0 auto;
+      width: 100%;
+      padding: 32px 24px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .chat-section {
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+      border: 1px solid #e6e6e6;
+      flex-grow: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      min-height: 500px;
+    }
+
+    .chat-header {
+      background: #f8f9fa;
+      padding: 20px 24px;
+      border-bottom: 1px solid #e6e6e6;
+    }
+
+    .chat-title {
+      font-size: 24px;
+      font-weight: 600;
+      color: #333333;
+      margin-bottom: 4px;
+    }
+
+    .chat-subtitle {
+      font-size: 16px;
+      color: #7d7d7d;
+    }
+
+    /* Recipe image display within messages */
+    .message-image {
+      width: 100%;
+      max-width: 400px;
+      height: auto;
+      border-radius: 8px;
+      margin: 0 0 16px 0;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      display: block;
+    }
+
+    .message-image-container {
+      margin: 0 0 16px 0;
+      text-align: center;
+    }
+
+    .messages {
+      flex-grow: 1;
+      overflow-y: auto;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      background: #fafafa;
+    }
+
+    .message-wrapper {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+    }
+
+    .message-wrapper.user {
+      flex-direction: row-reverse;
+    }
+
+    .avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      flex-shrink: 0;
+    }
+
+    .avatar.bot {
+      background: linear-gradient(135deg, #1c7430, #2e8b44);
+      color: white;
+    }
+
+    .avatar.user {
+      background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+      color: #333333;
+      border: 2px solid #e6e6e6;
+    }
+
+    .message {
+      max-width: 70%;
+      padding: 16px 20px;
+      border-radius: 18px;
+      font-size: 16px;
+      line-height: 1.5;
+      position: relative;
+    }
+
+    .message.bot {
+      background: white;
+      border: 1px solid #e6e6e6;
+      color: #333333;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    }
+
+    .message.user {
+      background: #1c7430;
+      color: white;
+    }
+
+    /* Bold text styling */
+    .message strong {
+      font-weight: 600;
+      color: #1c7430;
+    }
+
+    .message.user strong {
+      color: #ffffff;
+      font-weight: 700;
+    }
+
+    /* Heading styles within messages */
+    .message h1, .message h2, .message h3, .message h4, .message h5, .message h6 {
+      margin: 16px 0 12px 0;
+      line-height: 1.3;
+      color: #1c7430;
+    }
+
+    .message h1 {
+      font-size: 24px;
+      font-weight: 700;
+      border-bottom: 2px solid #e6f3e6;
+      padding-bottom: 8px;
+    }
+
+    .message h2 {
+      font-size: 20px;
+      font-weight: 600;
+      border-bottom: 1px solid #e6f3e6;
+      padding-bottom: 6px;
+    }
+
+    .message h3 {
+      font-size: 18px;
+      font-weight: 600;
+      color: #2e8b44;
+      position: relative;
+      padding-left: 16px;
+    }
+
+    .message h3::before {
+      content: "▶";
+      position: absolute;
+      left: 0;
+      color: #1c7430;
+      font-size: 14px;
+      top: 2px;
+    }
+
+    .message h4 {
+      font-size: 16px;
+      font-weight: 600;
+      color: #2e8b44;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      font-size: 14px;
+    }
+
+    .message h5, .message h6 {
+      font-size: 14px;
+      font-weight: 500;
+      color: #666666;
+    }
+
+    /* Recipe URL button styling */
+    .recipe-link-button {
+      display: inline-block;
+      margin: 16px 0;
+      padding: 12px 24px;
+      background: linear-gradient(135deg, #1c7430, #2e8b44);
+      color: white;
+      text-decoration: none;
+      border-radius: 25px;
+      font-weight: 600;
+      font-size: 16px;
+      transition: all 0.2s ease;
+      box-shadow: 0 2px 8px rgba(28, 116, 48, 0.2);
+    }
+
+    .recipe-link-button:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(28, 116, 48, 0.3);
+      color: white;
+    }
+
+    .recipe-link-button:active {
+      transform: translateY(0);
+    }
+
+    /* Table styles within messages */
+    .message table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 16px 0;
+      background: #fafafa;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    }
+
+    .message th, .message td {
+      padding: 12px 16px;
+      text-align: left;
+      border-bottom: 1px solid #e6e6e6;
+    }
+
+    .message th {
+      background: #1c7430;
+      color: white;
+      font-weight: 600;
+      font-size: 14px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .message td {
+      background: white;
+      color: #333333;
+    }
+
+    .message tr:last-child td {
+      border-bottom: none;
+    }
+
+    .message tr:nth-child(even) td {
+      background: #f8f9fa;
+    }
+
+    /* User message table overrides */
+    .message.user table {
+      background: rgba(255,255,255,0.1);
+    }
+
+    .message.user th {
+      background: rgba(255,255,255,0.2);
+      color: white;
+    }
+
+    .message.user td {
+      background: rgba(255,255,255,0.1);
+      color: white;
+      border-bottom-color: rgba(255,255,255,0.2);
+    }
+
+    .message.user tr:nth-child(even) td {
+      background: rgba(255,255,255,0.05);
+    }
+
+    /* Input section */
+    .input-section {
+      padding: 24px;
+      background: white;
+      border-top: 1px solid #e6e6e6;
+    }
+
+    .input-container {
+      display: flex;
+      gap: 12px;
+      max-width: 100%;
+    }
+
+    .input-wrapper {
+      flex-grow: 1;
+      position: relative;
+    }
+
+    input {
+      width: 100%;
+      padding: 16px 20px;
+      border: 2px solid #e6e6e6;
+      border-radius: 25px;
+      font-size: 16px;
+      background: #f8f9fa;
+      transition: all 0.2s ease;
+      outline: none;
+    }
+
+    input:focus {
+      border-color: #1c7430;
+      background: white;
+      box-shadow: 0 0 0 3px rgba(28, 116, 48, 0.1);
+    }
+
+    button {
+      background: linear-gradient(135deg, #1c7430, #2e8b44);
+      color: white;
+      border: none;
+      padding: 16px 28px;
+      border-radius: 25px;
+      cursor: pointer;
+      font-size: 16px;
+      font-weight: 600;
+      transition: all 0.2s ease;
+      box-shadow: 0 2px 8px rgba(28, 116, 48, 0.2);
+    }
+
+    button:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(28, 116, 48, 0.3);
+    }
+
+    button:active {
+      transform: translateY(0);
+    }
+
+    /* Loading animation */
+    .loading-dots {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .loading-dots::after {
+      content: '';
+      display: inline-block;
+      width: 20px;
+      height: 20px;
+      border: 2px solid #1c7430;
+      border-radius: 50%;
+      border-top-color: transparent;
+      animation: spin 1s ease-in-out infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* Recipe suggestions */
+    .suggestions {
+      display: flex;
+      gap: 12px;
+      margin-top: 16px;
+      flex-wrap: wrap;
+    }
+
+    .suggestion-chip {
+      background: #f1f8f3;
+      color: #1c7430;
+      border: 1px solid #c8e6d0;
+      padding: 8px 16px;
+      border-radius: 20px;
+      font-size: 14px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .suggestion-chip:hover {
+      background: #1c7430;
+      color: white;
+      transform: translateY(-1px);
+    }
+
+    /* Responsive design */
+    @media (max-width: 768px) {
+      .hero-title {
+        font-size: 32px;
+      }
+      
+      .hero-subtitle {
+        font-size: 18px;
+      }
+      
+      .nav-links {
+        display: none;
+      }
+      
+      .main-content {
+        padding: 16px 12px;
+      }
+      
+      .message {
+        max-width: 85%;
+      }
+      
+      .input-section {
+        padding: 16px;
+      }
+
+      .recipe-image {
+        height: 200px;
+      }
+    }
+
+    /* Scrollbar styling */
+    .messages::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    .messages::-webkit-scrollbar-track {
+      background: #f1f1f1;
+      border-radius: 3px;
+    }
+
+    .messages::-webkit-scrollbar-thumb {
+      background: #c1c1c1;
+      border-radius: 3px;
+    }
+
+    .messages::-webkit-scrollbar-thumb:hover {
+      background: #a1a1a1;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="header">
+    <div class="header-top">
+      <div class="header-top-text">Free delivery on orders over $104* | Shop online or collect in-store</div>
+    </div>
+    <div class="header-main">
+      <div class="logo">
+        <div>
+          <div class="logo-text">Woolworths</div>
+          <div class="logo-subtitle">Fresh Ideas for You</div>
+        </div>
+      </div>
+      <nav class="nav-links">
+        <a href="#" class="nav-link">Shop</a>
+        <a href="#" class="nav-link active">Recipes</a>
+        <a href="#" class="nav-link">My Account</a>
+        <a href="#" class="nav-link">Everyday Rewards</a>
+      </nav>
+    </div>
+  </div>
+
+  <div class="hero">
+    <div class="hero-content">
+      <h1 class="hero-title">Woolworths Assistant</h1>
+      <p class="hero-subtitle">Get personalized recipe recommendations and cooking assistance powered by AI. Ask me anything about ingredients, meal planning, or cooking techniques!</p>
+    </div>
+  </div>
+
+  <div class="main-content">
+    <div class="chat-section">
+      <div class="chat-header">
+        <h2 class="chat-title">Your Personal Woolworths Assistant</h2>
+        <p class="chat-subtitle">Ask me about recipes, ingredients, meal planning, or cooking tips</p>
+      </div>
+      
+      <div class="messages" id="chat">
+        <div class="message-wrapper bot">
+          <div class="avatar bot">🤖</div>
+          <div class="message bot">
+            Hello! I'm your Woolworths assistant. I can help you find recipes, suggest meal ideas based on your ingredients, provide cooking tips, and answer any food-related questions. What would you like to cook today?
+          </div>
+        </div>
+      </div>
+      
+      <div class="input-section">
+        <div class="input-container">
+          <div class="input-wrapper">
+            <input type="text" id="userInput" placeholder="Ask me what to cook, or tell me what ingredients you have..." />
+          </div>
+          <button onclick="sendMessage()">Send</button>
+        </div>
+        <div class="suggestions">
+          <div class="suggestion-chip" onclick="quickSend('Quick 30-minute dinner ideas')">Quick 30-min dinners</div>
+          <div class="suggestion-chip" onclick="quickSend('Healthy meal prep recipes')">Healthy meal prep</div>
+          <div class="suggestion-chip" onclick="quickSend('What can I make with chicken and vegetables?')">Use my ingredients</div>
+          <div class="suggestion-chip" onclick="quickSend('Vegetarian recipe suggestions')">Vegetarian options</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const chatBox = document.getElementById('chat');
+    const input = document.getElementById('userInput');
+    const sessionId = 'user-' + Math.random().toString(36).substr(2, 9);
+
+    function processMessageContent(content) {
+      // Handle table format BEFORE other processing
+      // Convert pipe table format to HTML table
+      const tableRegex = /\|([^|]+\|[^|]+\|[^|\n]*)\n\|\s*-+\s*\|\s*-+\s*\|[^\n]*\n((?:\|[^|\n]*\|[^|\n]*\|[^\n]*\n?)+)/g;
+      content = content.replace(tableRegex, (match, headerRow, bodyRows) => {
+        const headers = headerRow.split('|').map(h => h.trim()).filter(h => h);
+        const rows = bodyRows.trim().split('\n').map(row => 
+          row.split('|').map(cell => cell.trim()).filter(cell => cell)
+        );
+        
+        let tableHTML = '<table><thead><tr>';
+        headers.forEach(header => {
+          tableHTML += `<th>${header}</th>`;
+        });
+        tableHTML += '</tr></thead><tbody>';
+        
+        rows.forEach(row => {
+          if (row.length > 0) {
+            tableHTML += '<tr>';
+            row.forEach(cell => {
+              tableHTML += `<td>${cell}</td>`;
+            });
+            tableHTML += '</tr>';
+          }
+        });
+        
+        tableHTML += '</tbody></table>';
+        return tableHTML;
+      });
+      
+      // Handle markdown-style headings (### text)
+      content = content.replace(/^### (.+)$/gm, '<h3>$1</h3>');
+      content = content.replace(/^## (.+)$/gm, '<h2>$1</h2>');
+      content = content.replace(/^# (.+)$/gm, '<h1>$1</h1>');
+      content = content.replace(/^#### (.+)$/gm, '<h4>$1</h4>');
+      
+      // Handle bold text (**text**)
+      content = content.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+      
+      // Clean up multiple newlines BEFORE converting to <br>
+      content = content.replace(/\\n\\n+/g, '\\n'); // Multiple escaped newlines
+      content = content.replace(/\n\n+/g, '\n'); // Multiple actual newlines
+      
+      // NOW convert newlines to <br> - after processing special patterns
+      content = content.replace(/\\n/g, '<br>');
+      content = content.replace(/\n/g, '<br>');
+      
+      // Handle markdown-style links [text](url) - but not the ones we already processed
+      const markdownLinkRegex = /\[([^\]]+)\]\(([^)]+)\)/g;
+      content = content.replace(markdownLinkRegex, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>');
+      
+      // Handle standalone URLs that aren't already in HTML links (improved pattern)
+      const urlRegex = /(?<!href="|">|<)(https?:\/\/[^\s<>\]]+)(?![^<]*<\/a>|[^<]*>)/g;
+      content = content.replace(urlRegex, '<a href="$1" target="_blank" rel="noopener noreferrer">$1</a>');
+      
+      // Clean up any leftover empty sections or bullet points
+      content = content.replace(/^[\s-]*$\n?/gm, '');
+      content = content.replace(/(<br>\s*){3,}/g, '<br><br>');
+      
+      return content;
+    }
+
+    function addMessage(content, sender = 'bot', isHTML = false, imageUrl = null, recipeUrl = null) {
+      const wrapper = document.createElement('div');
+      wrapper.className = 'message-wrapper ' + sender;
+
+      const avatar = document.createElement('div');
+      avatar.className = 'avatar ' + sender;
+      avatar.textContent = sender === 'bot' ? '🤖' : '👤';
+
+      const message = document.createElement('div');
+      message.className = 'message ' + sender;
+      
+      // Add image at the top if imageUrl exists and sender is bot
+      if (imageUrl && sender === 'bot') {
+        const imageContainer = document.createElement('div');
+        imageContainer.className = 'message-image-container';
+        
+        const img = document.createElement('img');
+        img.src = imageUrl;
+        img.alt = 'Recipe Image';
+        img.className = 'message-image';
+        
+        // Add error handling for failed image loads
+        img.onerror = function() {
+          imageContainer.style.display = 'none';
+        };
+        
+        imageContainer.appendChild(img);
+        message.appendChild(imageContainer);
+      }
+      
+      // Create a content div for the text content
+      const textContent = document.createElement('div');
+      if (isHTML) {
+        textContent.innerHTML = content;
+      } else {
+        textContent.innerHTML = processMessageContent(content);
+      }
+      message.appendChild(textContent);
+      
+      // Add recipe URL button if recipeUrl exists and sender is bot
+      if (recipeUrl && sender === 'bot') {
+        const urlButton = document.createElement('a');
+        urlButton.href = recipeUrl;
+        urlButton.target = '_blank';
+        urlButton.rel = 'noopener noreferrer';
+        urlButton.className = 'recipe-link-button';
+        urlButton.innerHTML = '🍽️ View Full Recipe & Shopping List';
+        message.appendChild(urlButton);
+      }
+
+      if (sender === 'bot') {
+        wrapper.appendChild(avatar);
+        wrapper.appendChild(message);
+      } else {
+        wrapper.appendChild(message);
+        wrapper.appendChild(avatar);
+      }
+
+      chatBox.appendChild(wrapper);
+      
+      // Smooth scroll to bottom with a slight delay to ensure content is rendered
+      setTimeout(() => {
+        chatBox.scrollTo({
+          top: chatBox.scrollHeight,
+          behavior: 'smooth'
+        });
+      }, 100);
+      
+      return message;
+    }
+
+    function quickSend(text) {
+      input.value = text;
+      sendMessage();
+    }
+
+    async function sendMessage() {
+      const message = input.value.trim();
+      if (!message) return;
+
+      addMessage(message, 'user');
+      input.value = '';
+
+      const loadingMessage = addMessage(`<div class="loading-dots">Assistant is thinking</div>`, 'bot', true);
+
+      try {
+        const response = await fetch('http://localhost:5678/webhook/recipe-webhook-v2', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ message, sessionId })
+        });
+
+        const data = await response.json();
+        loadingMessage.parentElement.remove();
+        
+        // Handle the new JSON response format
+        let agentResponse = '';
+        let imageUrl = null;
+        let recipeUrl = null;
+        
+        if (typeof data === 'object' && data !== null) {
+          // Check if it's the new JSON format with agent_response, url, image
+          if (data.agent_response !== undefined) {
+            agentResponse = data.agent_response;
+            imageUrl = data.image || null;
+            recipeUrl = data.url || null;
+          }
+          // Handle the nested structure from your API response
+          else if (data.output && typeof data.output === 'object') {
+            agentResponse = data.output.agent_response || '';
+            imageUrl = data.output.image || null;
+            recipeUrl = data.output.url || null;
+          }
+          // Handle if output is a JSON string that needs parsing
+          else if (data.output && typeof data.output === 'string') {
+            try {
+              const parsedOutput = JSON.parse(data.output);
+              agentResponse = parsedOutput.agent_response || data.output;
+              imageUrl = parsedOutput.image || null;
+              recipeUrl = parsedOutput.url || null;
+            } catch (e) {
+              // If parsing fails, treat as regular text
+              agentResponse = data.output;
+            }
+          }
+          // Fallback to original format
+          else {
+            agentResponse = data.output || JSON.stringify(data);
+          }
+        } else {
+          agentResponse = data.output || data.toString();
+        }
+        
+        addMessage(agentResponse, 'bot', false, imageUrl, recipeUrl);
+        
+        // Ensure scroll to bottom after bot response
+        setTimeout(() => {
+          chatBox.scrollTo({
+            top: chatBox.scrollHeight,
+            behavior: 'smooth'
+          });
+        }, 200);
+      } catch (err) {
+        loadingMessage.parentElement.remove();
+        addMessage("I apologize, but I'm having trouble connecting right now. Please try again in a moment.", 'bot');
+      }
+    }
+
+    input.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') sendMessage();
+    });
+
+    // Auto-focus on input
+    input.focus();
+  </script>
+
+</body>
+</html>
