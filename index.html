@@ -1,4 +1,14 @@
-<!DOCTYPE html>
+// Get auth credentials from storage
+        const authCredentials = getCredentials('authCredentials');
+        const headers = { 'Content-Type': 'application/json' };
+        
+        // Add authorization header if credentials exist
+        if (authCredentials) {
+          headers['Authorization'] = `Basic ${authCredentials}`;
+        }
+
+        console.log('Making request with headers:', JSON.stringify(headers, null, 2));
+        console.log('Auth credentials present:', !!authCredentials);<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
@@ -97,6 +107,55 @@
       color: #1c7430;
       border-bottom: 2px solid #1c7430;
       padding-bottom: 2px;
+    }
+
+    /* Simple auth prompt */
+    .auth-prompt {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: white;
+      border: 2px solid #1c7430;
+      border-radius: 12px;
+      padding: 24px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+      z-index: 2000;
+      min-width: 300px;
+      text-align: center;
+    }
+
+    .auth-prompt h3 {
+      color: #1c7430;
+      margin-bottom: 16px;
+    }
+
+    .auth-prompt input {
+      width: 100%;
+      margin-bottom: 12px;
+      padding: 12px;
+      border: 1px solid #e6e6e6;
+      border-radius: 6px;
+    }
+
+    .auth-prompt button {
+      width: 100%;
+      padding: 12px;
+      margin-top: 8px;
+    }
+
+    .auth-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.5);
+      z-index: 1999;
+    }
+
+    .hidden {
+      display: none;
     }
 
     /* Hero section */
@@ -443,13 +502,21 @@
       box-shadow: 0 2px 8px rgba(28, 116, 48, 0.2);
     }
 
-    button:hover {
+    button:hover:not(:disabled) {
       transform: translateY(-1px);
       box-shadow: 0 4px 12px rgba(28, 116, 48, 0.3);
     }
 
-    button:active {
+    button:active:not(:disabled) {
       transform: translateY(0);
+    }
+
+    /* Disabled button styling */
+    button:disabled {
+      background: #cccccc;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
     }
 
     /* Loading animation */
@@ -552,6 +619,19 @@
 </head>
 <body>
 
+  <!-- Auth Prompt (shows only if no URL params) -->
+  <div class="auth-overlay hidden" id="authOverlay"></div>
+  <div class="auth-prompt hidden" id="authPrompt">
+    <h3>🔐 Authentication Required</h3>
+    <p>Enter your credentials to continue:</p>
+    <input type="text" id="promptUsername" placeholder="Username" />
+    <input type="password" id="promptPassword" placeholder="Password" />
+    <button onclick="setAuthAndReload()">Continue</button>
+    <div style="margin-top: 12px; font-size: 12px; color: #666;">
+      Or add ?username=USER&password=PASS to the URL
+    </div>
+  </div>
+
   <div class="header">
     <div class="header-top">
       <div class="header-top-text">Free delivery on orders over $104* | Shop online or collect in-store</div>
@@ -600,7 +680,7 @@
           <div class="input-wrapper">
             <input type="text" id="userInput" placeholder="Ask me what to cook, or tell me what ingredients you have..." />
           </div>
-          <button onclick="sendMessage()">Send</button>
+          <button id="sendButton" onclick="sendMessage()">Send</button>
         </div>
         <div class="suggestions">
           <div class="suggestion-chip" onclick="quickSend('Quick 30-minute dinner ideas')">Quick 30-min dinners</div>
@@ -615,7 +695,125 @@
   <script>
     const chatBox = document.getElementById('chat');
     const input = document.getElementById('userInput');
+    const sendButton = document.getElementById('sendButton');
     const sessionId = 'user-' + Math.random().toString(36).substr(2, 9);
+    let isThinking = false;
+
+    // Get auth credentials from URL parameters
+    function getAuthFromURL() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const creds = urlParams.get('credentials');
+      
+      if (creds) {
+        console.log('Auth credentials found in URL for user:', creds);
+        return creds;
+      }
+      
+      console.log('No auth credentials found in URL');
+      return null;
+    }
+
+    // Set auth credentials and reload page with URL params
+    function setAuthAndReload() {
+      const username = document.getElementById('promptUsername').value;
+      const password = document.getElementById('promptPassword').value;
+      
+      if (username && password) {
+        const currentUrl = new URL(window.location.href);
+        currentUrl.searchParams.set('username', username);
+        currentUrl.searchParams.set('password', password);
+        window.location.href = currentUrl.toString();
+      } else {
+        alert('Please enter both username and password');
+      }
+    }
+
+    // Check if auth is needed and show prompt
+    function checkAuthNeeded() {
+      const authCredentials = getAuthFromURL();
+      if (!authCredentials) {
+        // Don't block the page, just keep the prompt ready
+        console.log('No auth credentials found. Auth prompt available.');
+        return false;
+      }
+      console.log('Auth credentials found, ready to make API calls');
+      return true;
+    }
+
+    // Auto-scroll function
+    function scrollToBottom() {
+      chatBox.scrollTo({
+        top: chatBox.scrollHeight,
+        behavior: 'smooth'
+      });
+    }
+
+    // Enhanced addMessage function with auto-scroll
+    function addMessage(content, sender = 'bot', isHTML = false, imageUrl = null, recipeUrl = null) {
+      const wrapper = document.createElement('div');
+      wrapper.className = 'message-wrapper ' + sender;
+
+      const avatar = document.createElement('div');
+      avatar.className = 'avatar ' + sender;
+      avatar.textContent = sender === 'bot' ? '🤖' : '👤';
+
+      const message = document.createElement('div');
+      message.className = 'message ' + sender;
+      
+      // Add image at the top if imageUrl exists and sender is bot
+      if (imageUrl && sender === 'bot') {
+        const imageContainer = document.createElement('div');
+        imageContainer.className = 'message-image-container';
+        
+        const img = document.createElement('img');
+        img.src = imageUrl;
+        img.alt = 'Recipe Image';
+        img.className = 'message-image';
+        
+        // Add error handling for failed image loads
+        img.onerror = function() {
+          imageContainer.style.display = 'none';
+        };
+        
+        imageContainer.appendChild(img);
+        message.appendChild(imageContainer);
+      }
+      
+      // Create a content div for the text content
+      const textContent = document.createElement('div');
+      if (isHTML) {
+        textContent.innerHTML = content;
+      } else {
+        textContent.innerHTML = processMessageContent(content);
+      }
+      message.appendChild(textContent);
+      
+      // Add recipe URL button if recipeUrl exists and sender is bot
+      if (recipeUrl && sender === 'bot') {
+        const urlButton = document.createElement('a');
+        urlButton.href = recipeUrl;
+        urlButton.target = '_blank';
+        urlButton.rel = 'noopener noreferrer';
+        urlButton.className = 'recipe-link-button';
+        urlButton.innerHTML = '🍽️ View Full Recipe & Shopping List';
+        message.appendChild(urlButton);
+      }
+
+      if (sender === 'bot') {
+        wrapper.appendChild(avatar);
+        wrapper.appendChild(message);
+      } else {
+        wrapper.appendChild(message);
+        wrapper.appendChild(avatar);
+      }
+
+      chatBox.appendChild(wrapper);
+      
+      // Auto-scroll to bottom
+      setTimeout(scrollToBottom, 100);
+      
+      return message;
+    }
 
     function processMessageContent(content) {
       // Handle table format BEFORE other processing
@@ -679,85 +877,28 @@
       return content;
     }
 
-    function addMessage(content, sender = 'bot', isHTML = false, imageUrl = null, recipeUrl = null) {
-      const wrapper = document.createElement('div');
-      wrapper.className = 'message-wrapper ' + sender;
-
-      const avatar = document.createElement('div');
-      avatar.className = 'avatar ' + sender;
-      avatar.textContent = sender === 'bot' ? '🤖' : '👤';
-
-      const message = document.createElement('div');
-      message.className = 'message ' + sender;
-      
-      // Add image at the top if imageUrl exists and sender is bot
-      if (imageUrl && sender === 'bot') {
-        const imageContainer = document.createElement('div');
-        imageContainer.className = 'message-image-container';
-        
-        const img = document.createElement('img');
-        img.src = imageUrl;
-        img.alt = 'Recipe Image';
-        img.className = 'message-image';
-        
-        // Add error handling for failed image loads
-        img.onerror = function() {
-          imageContainer.style.display = 'none';
-        };
-        
-        imageContainer.appendChild(img);
-        message.appendChild(imageContainer);
-      }
-      
-      // Create a content div for the text content
-      const textContent = document.createElement('div');
-      if (isHTML) {
-        textContent.innerHTML = content;
-      } else {
-        textContent.innerHTML = processMessageContent(content);
-      }
-      message.appendChild(textContent);
-      
-      // Add recipe URL button if recipeUrl exists and sender is bot
-      if (recipeUrl && sender === 'bot') {
-        const urlButton = document.createElement('a');
-        urlButton.href = recipeUrl;
-        urlButton.target = '_blank';
-        urlButton.rel = 'noopener noreferrer';
-        urlButton.className = 'recipe-link-button';
-        urlButton.innerHTML = '🍽️ View Full Recipe & Shopping List';
-        message.appendChild(urlButton);
-      }
-
-      if (sender === 'bot') {
-        wrapper.appendChild(avatar);
-        wrapper.appendChild(message);
-      } else {
-        wrapper.appendChild(message);
-        wrapper.appendChild(avatar);
-      }
-
-      chatBox.appendChild(wrapper);
-      
-      // Smooth scroll to bottom with a slight delay to ensure content is rendered
-      setTimeout(() => {
-        chatBox.scrollTo({
-          top: chatBox.scrollHeight,
-          behavior: 'smooth'
-        });
-      }, 100);
-      
-      return message;
-    }
-
     function quickSend(text) {
+      if (isThinking) return; // Prevent sending if already thinking
       input.value = text;
       sendMessage();
     }
 
+    // Enhanced sendMessage function with button disabling
     async function sendMessage() {
       const message = input.value.trim();
-      if (!message) return;
+      if (!message || isThinking) return;
+
+      // Check if auth is available
+      const authCredentials = getAuthFromURL();
+      if (!authCredentials) {
+        alert('Authentication required. Please use the URL with credentials');
+        return;
+      }
+
+      // Disable button and set thinking state
+      isThinking = true;
+      sendButton.disabled = true;
+      sendButton.textContent = 'Sending...';
 
       addMessage(message, 'user');
       input.value = '';
@@ -765,9 +906,23 @@
       const loadingMessage = addMessage(`<div class="loading-dots">Assistant is thinking</div>`, 'bot', true);
 
       try {
+        // Get auth credentials from cookie and prepare headers
+        // const authCredentials = getCookie('authCredentials');
+        const headers = { 'Content-Type': 'application/json' };
+        
+        // Add authorization header if credentials exist
+        if (authCredentials) {
+          headers['Authorization'] = `Basic ${authCredentials}`;
+          console.log("setting auth header")
+        }
+
+        console.log('Making request with headers:', JSON.stringify(headers, null, 2)); // Debug log
+        console.log('Auth credentials present:', !!authCredentials); // Debug log
+
         const response = await fetch('http://localhost:5678/webhook/recipe-webhook-v2', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: headers,
+        //   headers: {"test":"test"},
           body: JSON.stringify({ message, sessionId })
         });
 
@@ -814,25 +969,40 @@
         
         addMessage(agentResponse, 'bot', false, imageUrl, recipeUrl);
         
-        // Ensure scroll to bottom after bot response
-        setTimeout(() => {
-          chatBox.scrollTo({
-            top: chatBox.scrollHeight,
-            behavior: 'smooth'
-          });
-        }, 200);
       } catch (err) {
+        console.error('Fetch error details:', err);
+        console.error('Error message:', err.message);
+        console.error('Error stack:', err.stack);
+        
         loadingMessage.parentElement.remove();
-        addMessage("I apologize, but I'm having trouble connecting right now. Please try again in a moment.", 'bot');
+        
+        // More specific error messages
+        if (err.name === 'TypeError' && err.message.includes('Failed to fetch')) {
+          addMessage("❌ **Connection Error**: Cannot reach the server at localhost:5678. Please check:\n\n• Is your n8n server running?\n• Is the webhook URL correct?\n• Are you accessing via HTTPS but calling HTTP?", 'bot');
+        } else if (err.message.includes('HTTP 401')) {
+          addMessage("🔐 **Authentication Error**: Invalid credentials. Please check your username and password.", 'bot');
+        } else if (err.message.includes('HTTP 404')) {
+          addMessage("🔍 **Not Found**: The webhook endpoint '/webhook/recipe-webhook-v2' was not found. Please check the URL.", 'bot');
+        } else if (err.message.includes('CORS')) {
+          addMessage("🚫 **CORS Error**: Cross-origin request blocked. Your n8n server needs to allow requests from this origin.", 'bot');
+        } else {
+          addMessage(`⚠️ **Error**: ${err.message}\n\nPlease check the browser console for more details.`, 'bot');
+        }
+      } finally {
+        // Re-enable button and reset thinking state
+        isThinking = false;
+        sendButton.disabled = false;
+        sendButton.textContent = 'Send';
       }
     }
 
     input.addEventListener('keypress', (e) => {
-      if (e.key === 'Enter') sendMessage();
+      if (e.key === 'Enter' && !isThinking) sendMessage();
     });
 
     // Auto-focus on input
     input.focus();
+    checkAuthNeeded();
   </script>
 
 </body>
